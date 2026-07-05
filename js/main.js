@@ -189,9 +189,12 @@
   function initHeroImage() {
     var heroMedia = document.getElementById('hero-media');
     if (!heroMedia) return;
+    // Resolve against the page URL: a relative url() inside a custom property
+    // would otherwise resolve against the stylesheet's folder (css/).
+    var photoUrl = new URL('assets/hero.jpg', document.baseURI).href;
     var img = new Image();
     img.onload = function () {
-      heroMedia.style.setProperty('--hero-photo-url', 'url("assets/hero.jpg")');
+      heroMedia.style.setProperty('--hero-photo-url', 'url("' + photoUrl + '")');
       heroMedia.classList.remove('hero-media--fallback');
       heroMedia.classList.add('hero-media--photo');
     };
@@ -199,7 +202,7 @@
       // Expected until the host drops in the real photo; keep the gradient
       // fallback and avoid any noisy console output.
     };
-    img.src = 'assets/hero.jpg';
+    img.src = photoUrl;
   }
 
   /* ===========================================================
