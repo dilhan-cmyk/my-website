@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - RSVP Management</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Login Gate */
+    .login-form {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-card {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .login-card h1 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .login-card form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .login-card input[type="password"] {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    .login-card input[type="password"]:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .login-card button {
+      padding: 12px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .login-card button:hover {
+      background-color: #0052a3;
+    }
+
+    .login-card button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .login-card .message {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .login-card .message.error {
+      background-color: #fee;
+      color: #c00;
+    }
+
+    .login-card .message.countdown {
+      background-color: #fee;
+      color: #c00;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+    }
+
+    .dashboard.visible {
+      display: block;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+    }
+
+    .demo-badge {
+      display: inline-block;
+      background-color: #ffd700;
+      color: #333;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-actions button {
+      padding: 10px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-actions button:hover {
+      background-color: #0052a3;
+    }
+
+    .header-actions button.sign-out {
+      background-color: #999;
+    }
+
+    .header-actions button.sign-out:hover {
+      background-color: #777;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #0066cc;
+    }
+
+    .table-wrapper {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+
+    .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table-wrapper th {
+      background-color: #f9f9f9;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+    }
+
+    .table-wrapper td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .table-wrapper tr:hover {
+      background-color: #fafafa;
+    }
+
+    .table-wrapper a {
+      color: #0066cc;
+      text-decoration: none;
+      margin-right: 8px;
+    }
+
+    .table-wrapper a:hover {
+      text-decoration: underline;
+    }
+
+    .delete-btn {
+      padding: 6px 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .error-message {
+      background-color: #fee;
+      color: #c00;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 12px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .header-actions button {
+        flex: 1;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .table-wrapper {
+        font-size: 12px;
+      }
+
+      .table-wrapper th,
+      .table-wrapper td {
+        padding: 8px;
+      }
+
+      .delete-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Form -->
+    <div class="login-form" id="loginForm">
+      <div class="login-card">
+        <h1>Admin access</h1>
+        <form id="passwordForm">
+          <input
+            type="password"
+            id="passwordInput"
+            placeholder="Password"
+            required
+            autocomplete="current-password"
+          >
+          <button type="submit" id="signInBtn">Sign in</button>
+        </form>
+        <div id="loginMessage"></div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+      <div class="header">
+        <div>
+          <h1>
+            Admin Dashboard
+            <span class="demo-badge" id="demoBadge" style="display: none;">Demo mode</span>
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button id="refreshBtn">Refresh</button>
+          <button id="signOutBtn" class="sign-out">Sign out</button>
+        </div>
+      </div>
+
+      <div id="errorContainer"></div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Total guests</div>
+          <div class="value" id="totalGuestsValue">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total RSVPs</div>
+          <div class="value" id="totalRsvpsValue">0</div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="rsvpTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Guests</th>
+              <th>Submitted</th>
+              <th>Photos</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rsvpTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display: none;">
+        No RSVPs yet.
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    // ========================
+    // State and Constants
+    // ========================
+    const ADMIN_TOKEN_STORAGE = "roshan70_admin_token";
+    const ADMIN_ATTEMPTS_STORAGE = "roshan70_admin_attempts";
+    const LOCKOUT_WINDOW_MINUTES = 5;
+    const MAX_FAILED_ATTEMPTS = 5;
+
+    let adminToken = null;
+    let allRecords = [];
+    let isLoading = false;
+
+    // ========================
+    // Demo Mode Data
+    // ========================
+    const DEMO_DATA = [
+      {
+        id: "1",
+        name: "Tamara Perera",
+        email: "tamara@example.com",
+        guestCount: 2,
+        timestamp: "2026-07-01T09:30:00.000Z",
+        photoUrls: []
+      },
+      {
+        id: "2",
+        name: "Peter Wong",
+        email: "peter@example.com",
+        guestCount: 1,
+        timestamp: "2026-07-03T22:10:00.000Z",
+        photoUrls: ["https://example.com/photo"]
+      }
+    ];
+
+    // ========================
+    // Initialization
+    // ========================
+    window.addEventListener("DOMContentLoaded", () => {
+      const storedToken = sessionStorage.getItem(ADMIN_TOKEN_STORAGE);
+      if (storedToken) {
+        adminToken = storedToken;
+        validateTokenAndShowDashboard();
+      }
+    });
+
+    // ========================
+    // Login Form Handlers
+    // ========================
+    document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const password = document.getElementById("passwordInput").value.trim();
+      if (!password) return;
+
+      document.getElementById("signInBtn").disabled = true;
+      clearLoginMessage();
+
+      // Check lockout
+      const lockoutState = checkLockout();
+      if (lockoutState.locked) {
+        document.getElementById("signInBtn").disabled = true;
+        showLoginCountdown(lockoutState.minutesRemaining);
+        return;
+      }
+
+      // Demo mode: only accept "demo"
+      if (CONFIG.APPS_SCRIPT_URL === "") {
+        if (password === "demo") {
+          adminToken = "demo";
+          sessionStorage.setItem(ADMIN_TOKEN_STORAGE, adminToken);
+          clearAttempts();
+          showDashboard();
+        } else {
+          recordFailedAttempt();
+          showLoginError("Wrong password.");
+          document.getElementById("signInBtn").disabled = false;
+        }
+        return;
+      }
+
+      // Real API mode: validate token
+      try {
+        const response = await fetch(
+          `${CONFIG.APPS_SCRIPT_URL}?action=admin&token=${encodeURIComponent(password)}`
+        );
+        if (!response.ok) throw new Error("Network error");
+
+        const data = await response.json();
+        if (data.ok) {
+          adminToken = password;
+          sessionStorage.setItem(ADMIN_TOKEN_STORAGE, adminToken);
+          clearAttempts();
+          showDashboard();
+        } else if (data.error === "unauthorized") {
+          recordFailedAttempt();
+          showLoginError("Wrong password.");
+          document.getElementById("signInBtn").disabled = false;
+        } else {
+          showLoginError("Server error: " + (data.error || "Unknown"));
+          document.getElementById("signInBtn").disabled = false;
+        }
+      } catch (err) {
+        showLoginError("Could not reach the server.");
+        document.getElementById("signInBtn").disabled = false;
+      }
+    });
+
+    // ========================
+    // Lockout Management
+    // ========================
+    function recordFailedAttempt() {
+      let attempts = JSON.parse(localStorage.getItem(ADMIN_ATTEMPTS_STORAGE) || "null");
+      const now = Date.now();
+
+      if (!attempts || now - attempts.firstAt > LOCKOUT_WINDOW_MINUTES * 60 * 1000) {
+        attempts = { count: 1, firstAt: now };
+      } else {
+        attempts.count++;
+      }
+
+      localStorage.setItem(ADMIN_ATTEMPTS_STORAGE, JSON.stringify(attempts));
+    }
+
+    function checkLockout() {
+      const attempts = JSON.parse(localStorage.getItem(ADMIN_ATTEMPTS_STORAGE) || "null");
+      if (!attempts) return { locked: false };
+
+      const now = Date.now();
+      const elapsed = now - attempts.firstAt;
+      const lockoutWindow = LOCKOUT_WINDOW_MINUTES * 60 * 1000;
+
+      if (elapsed > lockoutWindow) {
+        localStorage.removeItem(ADMIN_ATTEMPTS_STORAGE);
+        return { locked: false };
+      }
+
+      if (attempts.count >= MAX_FAILED_ATTEMPTS) {
+        const minutesRemaining = Math.ceil((lockoutWindow - elapsed) / 60000);
+        return { locked: true, minutesRemaining };
+      }
+
+      return { locked: false };
+    }
+
+    function clearAttempts() {
+      localStorage.removeItem(ADMIN_ATTEMPTS_STORAGE);
+    }
+
+    function showLoginCountdown(minutesRemaining) {
+      const messageDiv = document.getElementById("loginMessage");
+      messageDiv.className = "message countdown";
+      messageDiv.textContent = `Too many attempts. Try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? "s" : ""}.`;
+
+      const startTime = Date.now();
+      const lockoutWindow = LOCKOUT_WINDOW_MINUTES * 60 * 1000;
+      const attempts = JSON.parse(localStorage.getItem(ADMIN_ATTEMPTS_STORAGE) || "{}");
+      const lockoutExpiry = attempts.firstAt + lockoutWindow;
+
+      const countdown = setInterval(() => {
+        const now = Date.now();
+        if (now >= lockoutExpiry) {
+          clearInterval(countdown);
+          localStorage.removeItem(ADMIN_ATTEMPTS_STORAGE);
+          clearLoginMessage();
+          document.getElementById("signInBtn").disabled = false;
+          return;
+        }
+
+        const remaining = Math.ceil((lockoutExpiry - now) / 60000);
+        messageDiv.textContent = `Too many attempts. Try again in ${remaining} minute${remaining !== 1 ? "s" : ""}.`;
+      }, 1000);
+    }
+
+    function showLoginError(message) {
+      const messageDiv = document.getElementById("loginMessage");
+      messageDiv.className = "message error";
+      messageDiv.textContent = message;
+    }
+
+    function clearLoginMessage() {
+      const messageDiv = document.getElementById("loginMessage");
+      messageDiv.className = "message";
+      messageDiv.textContent = "";
+    }
+
+    // ========================
+    // Dashboard Display
+    // ========================
+    function validateTokenAndShowDashboard() {
+      if (CONFIG.APPS_SCRIPT_URL === "") {
+        // Demo mode: token already valid
+        showDashboard();
+      } else {
+        // Real API: verify token is still valid
+        fetchAdminData()
+          .then(() => showDashboard())
+          .catch(() => {
+            adminToken = null;
+            sessionStorage.removeItem(ADMIN_TOKEN_STORAGE);
+            showLoginForm();
+          });
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("dashboard").classList.add("visible");
+
+      // Show demo badge if in demo mode
+      if (CONFIG.APPS_SCRIPT_URL === "") {
+        document.getElementById("demoBadge").style.display = "inline-block";
+        allRecords = JSON.parse(JSON.stringify(DEMO_DATA));
+      }
+
+      refreshData();
+    }
+
+    function showLoginForm() {
+      document.getElementById("dashboard").classList.remove("visible");
+      document.getElementById("loginForm").style.display = "flex";
+      document.getElementById("passwordForm").reset();
+      document.getElementById("signInBtn").disabled = false;
+      clearLoginMessage();
+    }
+
+    // ========================
+    // Data Fetching
+    // ========================
+    async function fetchAdminData() {
+      if (CONFIG.APPS_SCRIPT_URL === "") {
+        // Demo mode: use local data
+        allRecords = JSON.parse(JSON.stringify(DEMO_DATA));
+        return;
+      }
+
+      const url = new URL(CONFIG.APPS_SCRIPT_URL);
+      url.searchParams.set("action", "admin");
+      url.searchParams.set("token", adminToken);
+
+      const response = await fetch(url.toString());
+      if (!response.ok) throw new Error("Network error");
+
+      const data = await response.json();
+      if (!data.ok) throw new Error(data.error || "Unknown error");
+
+      allRecords = data.records || [];
+    }
+
+    async function refreshData() {
+      if (isLoading) return;
+      isLoading = true;
+
+      try {
+        await fetchAdminData();
+        renderDashboard();
+        clearErrorMessage();
+      } catch (err) {
+        showErrorMessage("Failed to refresh data: " + err.message);
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    // ========================
+    // Dashboard Rendering
+    // ========================
+    function renderDashboard() {
+      const totalGuests = allRecords.reduce((sum, r) => sum + (r.guestCount || 0), 0);
+      const totalRsvps = allRecords.length;
+
+      document.getElementById("totalGuestsValue").textContent = totalGuests;
+      document.getElementById("totalRsvpsValue").textContent = totalRsvps;
+
+      const tbody = document.getElementById("rsvpTableBody");
+      const emptyState = document.getElementById("emptyState");
+
+      if (allRecords.length === 0) {
+        tbody.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      tbody.innerHTML = allRecords
+        .map(
+          (record) => `
+        <tr>
+          <td>${escapeHtml(record.name)}</td>
+          <td>${escapeHtml(record.email)}</td>
+          <td>${record.guestCount}</td>
+          <td>${formatTimestamp(record.timestamp)}</td>
+          <td>${renderPhotos(record.photoUrls)}</td>
+          <td>
+            <button class="delete-btn" data-id="${record.id}" onclick="deleteRsvp('${record.id}', '${escapeHtml(record.name).replace(/'/g, "\\'")}')">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `
+        )
+        .join("");
+    }
+
+    function renderPhotos(photoUrls) {
+      if (!photoUrls || photoUrls.length === 0) return "-";
+
+      return photoUrls
+        .map(
+          (url, idx) =>
+            `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Photo ${idx + 1}</a>`
+        )
+        .join(" ");
+    }
+
+    function formatTimestamp(isoString) {
+      try {
+        const date = new Date(isoString);
+        return date.toLocaleString("en-AU", { timeZone: "Australia/Sydney" });
+      } catch {
+        return isoString;
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ========================
+    // Delete RSVP
+    // ========================
+    async function deleteRsvp(id, name) {
+      if (!confirm(`Delete RSVP from ${name}? This cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        if (CONFIG.APPS_SCRIPT_URL === "") {
+          // Demo mode: delete from in-memory array
+          allRecords = allRecords.filter((r) => r.id !== id);
+        } else {
+          // Real API: send delete request
+          const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "deleteRsvp", token: adminToken, id })
+          });
+
+          if (!response.ok) throw new Error("Network error");
+
+          const data = await response.json();
+          if (!data.ok) throw new Error(data.error || "Unknown error");
+
+          allRecords = allRecords.filter((r) => r.id !== id);
+        }
+
+        renderDashboard();
+        clearErrorMessage();
+      } catch (err) {
+        showErrorMessage("Failed to delete RSVP: " + err.message);
+      }
+    }
+
+    // ========================
+    // Error Handling
+    // ========================
+    function showErrorMessage(message) {
+      const container = document.getElementById("errorContainer");
+      container.innerHTML = `<div class="error-message">${escapeHtml(message)}</div>`;
+    }
+
+    function clearErrorMessage() {
+      document.getElementById("errorContainer").innerHTML = "";
+    }
+
+    // ========================
+    // Event Listeners
+    // ========================
+    document.getElementById("refreshBtn").addEventListener("click", refreshData);
+
+    document.getElementById("signOutBtn").addEventListener("click", () => {
+      adminToken = null;
+      sessionStorage.removeItem(ADMIN_TOKEN_STORAGE);
+      showLoginForm();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roshan's 70th Birthday</title>
+<meta name="description" content="You're invited to Roshan's 70th Birthday, 2 August 2026. RSVP by 19 July 2026.">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Sticky confirmation banner, hidden until an RSVP exists in localStorage -->
+  <div id="sticky-banner" class="sticky-banner" hidden>
+    <span>&#9989; Your RSVP is confirmed. See you 2 August!</span>
+    <button type="button" id="banner-view-details" class="banner-link">View details</button>
+  </div>
+
+  <main id="scroll-container" class="scroll-container">
+
+    <!-- FOLD 1: HERO -->
+    <section id="hero" class="fold hero" aria-label="Invitation">
+      <!-- Host: drop the real photo at assets/hero.jpg. Falls back to a gradient if missing. -->
+      <div id="hero-media" class="hero-media hero-media--fallback"></div>
+      <div class="hero-overlay">
+        <div class="hero-content">
+          <p class="eyebrow">You're invited</p>
+          <h1 class="hero-heading">Roshan's 70th Birthday</h1>
+          <div id="hero-countdown" class="countdown countdown--hero" aria-live="polite">
+            <span class="countdown-loading">Loading countdown...</span>
+          </div>
+        </div>
+        <div class="scroll-indicator" aria-hidden="true">
+          <span class="scroll-indicator-mouse"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOLD 2: DETAILS -->
+    <section id="details" class="fold details" aria-label="Event details">
+      <div class="details-collage" aria-hidden="true">
+        <!-- Host: real photos go in assets/collage1.jpg, assets/collage2.jpg, assets/collage3.jpg, assets/collage4.jpg -->
+        <div class="polaroid polaroid--1"><div class="polaroid-frame"></div></div>
+        <div class="polaroid polaroid--2"><div class="polaroid-frame"></div></div>
+        <div class="polaroid polaroid--3"><div class="polaroid-frame"></div></div>
+        <div class="polaroid polaroid--4"><div class="polaroid-frame"></div></div>
+      </div>
+
+      <div class="details-content">
+        <h2 class="section-heading">Details</h2>
+        <ul class="details-list">
+          <li><span class="details-icon" aria-hidden="true">&#128197;</span> 2 August 2026, 1:00 PM</li>
+          <li><span class="details-icon" aria-hidden="true">&#128205;</span> 95 The Commenarra Parkway, Turramurra, New South Wales</li>
+          <li><span class="details-icon" aria-hidden="true">&#9989;</span> RSVP by 19 July 2026 (to Tamara)</li>
+        </ul>
+
+        <div id="rsvp-countdown" class="countdown countdown--rsvp" aria-live="polite">
+          <p class="countdown-label">RSVP deadline</p>
+          <span class="countdown-loading">Loading countdown...</span>
+        </div>
+
+        <button type="button" id="rsvp-button" class="btn btn-primary" aria-haspopup="dialog">
+          RSVP Now
+        </button>
+      </div>
+    </section>
+
+    <!-- ATTENDING SECTION -->
+    <section id="attending" class="fold attending" aria-label="Attending guests">
+      <div class="attending-content">
+        <h2 class="section-heading">&#127881; Attending</h2>
+        <ul id="attendee-list" class="attendee-list" aria-live="polite">
+          <li class="attendee-loading">Loading guest list...</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MAP SECTION -->
+    <section id="map" class="fold map-section" aria-label="Location map">
+      <h2 class="section-heading section-heading--map">Find us</h2>
+      <div class="map-embed-wrap">
+        <iframe
+          class="map-embed"
+          src=""
+          data-src-config="MAP_EMBED_URL"
+          loading="lazy"
+          title="Map showing the event location at 95 The Commenarra Parkway, Turramurra, New South Wales"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RSVP MODAL -->
+  <div id="rsvp-modal-backdrop" class="modal-backdrop" hidden>
+    <div id="rsvp-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rsvp-modal-title">
+      <button type="button" id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+      <div id="modal-body" class="modal-body">
+        <!-- Populated dynamically by main.js: RSVP form or post-confirmation screen -->
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
