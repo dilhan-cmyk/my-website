@@ -597,6 +597,11 @@
       '  <button type="button" id="save-calendar-btn" class="btn btn-secondary">Save to Calendar</button>' +
       '  <a id="get-directions-btn" class="btn btn-secondary" href="' + CONFIG.MAPS_URL + '" target="_blank" rel="noopener">Get Directions</a>' +
       '</div>' +
+      '<div class="calendar-help" id="calendar-help" hidden>' +
+      '  <p><strong>The invite file has downloaded.</strong> To add it to your calendar:</p>' +
+      '  <p>📱 On your phone: tap the downloaded file in your notifications (or open the Files app and look in Downloads), then tap Save when Google Calendar opens it.</p>' +
+      '  <p>💻 On a computer: go to calendar.google.com, click the gear icon, then Settings, then Import and export, choose the downloaded roshans-70th.ics file and click Import.</p>' +
+      '</div>' +
       '<div class="upload-block" id="upload-block">' +
       '  <h3>Got a photo of you and Roshan? Share it!</h3>' +
       '  <div class="form-field">' +
@@ -615,7 +620,11 @@
       '  <button type="button" id="rsvp-done" class="btn btn-primary">Done</button>' +
       '</div>';
 
-    modalBody.querySelector('#save-calendar-btn').addEventListener('click', downloadIcs);
+    modalBody.querySelector('#save-calendar-btn').addEventListener('click', function () {
+      downloadIcs();
+      var help = document.getElementById('calendar-help');
+      if (help) help.hidden = false;
+    });
     modalBody.querySelector('#skip-upload').addEventListener('click', function () {
       var block = document.getElementById('upload-block');
       if (block) block.remove();
