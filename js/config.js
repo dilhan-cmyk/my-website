@@ -9,9 +9,9 @@ const CONFIG = {
   EVENT_END: "2026-08-02T17:00:00+10:00",
   RSVP_DEADLINE: "2026-07-19T23:59:59+10:00",
 
-  ADDRESS: "95 The Commenarra Parkway, Turramurra, New South Wales",
-  MAPS_URL: "https://www.google.com/maps/dir/?api=1&destination=95+The+Commenarra+Parkway%2C+Turramurra+NSW",
-  MAP_EMBED_URL: "https://www.google.com/maps?q=95+The+Commenarra+Parkway%2C+Turramurra+NSW&output=embed",
+  ADDRESS: "95 The Comenarra Parkway, Turramurra, New South Wales",
+  MAPS_URL: "https://www.google.com/maps/dir/?api=1&destination=95+The+Comenarra+Parkway%2C+Turramurra+NSW",
+  MAP_EMBED_URL: "https://www.google.com/maps?q=95+The+Comenarra+Parkway%2C+Turramurra+NSW&output=embed",
 
   RSVP_CONTACT: "Tamara",
   MAX_PHOTOS_PER_PERSON: 5,
