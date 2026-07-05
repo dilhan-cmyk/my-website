@@ -342,12 +342,12 @@ body.has-banner .scroll-container {
 
 .polaroid {
   position: absolute;
-  width: 130px;
-  height: 155px;
+  width: 260px;
+  height: 310px;
   background: #ece6d8;
   border-radius: 2px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-  padding: 10px 10px 26px;
+  padding: 14px 14px 44px;
   z-index: 0;
 }
 
@@ -373,23 +373,25 @@ body.has-banner .scroll-container {
 /* Percent offsets are relative to the whole section (see the min-width
    rule below), so the polaroids scatter around the centered text and
    stay inside the fold at every viewport size. */
-.polaroid--1 { top: 8%; left: 3%; transform: rotate(-8deg); }
-.polaroid--2 { top: 16%; right: 5%; transform: rotate(6deg); }
-.polaroid--3 { bottom: 10%; left: 8%; transform: rotate(5deg); }
-.polaroid--4 { bottom: 18%; right: 6%; transform: rotate(-5deg); }
-.polaroid--5 { top: 44%; left: 1%; transform: rotate(3deg); }
-.polaroid--6 { top: 40%; right: 1%; transform: rotate(-4deg); }
+/* All placements hug the left/right edges in loose columns so the
+   centered text column stays clear and nothing floats mid-page. */
+.polaroid--1 { top: 4%; left: 1%; transform: rotate(-8deg); }
+.polaroid--2 { top: 7%; right: 1%; transform: rotate(6deg); }
+.polaroid--3 { bottom: 5%; left: 2%; transform: rotate(5deg); }
+.polaroid--4 { bottom: 8%; right: 2%; transform: rotate(-5deg); }
+.polaroid--5 { top: 36%; left: 0; transform: rotate(3deg); }
+.polaroid--6 { top: 39%; right: 0; transform: rotate(-4deg); }
 
 /* Attending fold */
-.polaroid--7 { top: 10%; left: 4%; transform: rotate(-6deg); }
-.polaroid--8 { top: 14%; right: 5%; transform: rotate(7deg); }
-.polaroid--9 { top: 46%; left: 2%; transform: rotate(4deg); }
-.polaroid--10 { bottom: 12%; right: 4%; transform: rotate(-5deg); }
-.polaroid--11 { bottom: 9%; left: 9%; transform: rotate(6deg); }
+.polaroid--7 { top: 5%; left: 1%; transform: rotate(-6deg); }
+.polaroid--8 { top: 8%; right: 1%; transform: rotate(7deg); }
+.polaroid--9 { top: 38%; right: 0; transform: rotate(4deg); }
+.polaroid--10 { bottom: 6%; right: 2%; transform: rotate(-5deg); }
+.polaroid--11 { bottom: 7%; left: 2%; transform: rotate(6deg); }
 
-/* Map fold: keep clear of the full-width iframe, top corners only */
-.polaroid--12 { top: 5%; left: 3%; transform: rotate(-7deg); }
-.polaroid--13 { top: 7%; right: 3%; transform: rotate(5deg); }
+/* Map fold: top corners, tucked behind the map card */
+.polaroid--12 { top: 4%; left: 1%; transform: rotate(-7deg); }
+.polaroid--13 { top: 6%; right: 1%; transform: rotate(5deg); }
 
 .details-content {
   position: relative;
@@ -928,13 +930,8 @@ input:focus-visible {
 /* Mid-size screens: smaller polaroids so they clear the centered text */
 @media (min-width: 601px) and (max-width: 1099px) {
   .polaroid {
-    width: 96px;
-    height: 116px;
-    padding: 7px 7px 18px;
+    width: 150px;
+    height: 180px;
+    padding: 10px 10px 26px;
   }
-
-  .polaroid--1 { left: 1%; }
-  .polaroid--2 { right: 1%; }
-  .polaroid--3 { left: 2%; }
-  .polaroid--4 { right: 2%; }
 }
