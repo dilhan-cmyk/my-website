@@ -583,6 +583,29 @@
     }
 
     apiPost(payload).then(function (res) {
+      // Self-heal a stale edit: the stored id no longer exists on the
+      // server (the record was deleted), so resubmit as a fresh RSVP.
+      if (isEdit && res && !res.ok && res.error === 'not_found') {
+        var freshPayload = {
+          action: 'rsvp',
+          name: name,
+          email: email,
+          guests: guests,
+          guestCount: guestCount,
+          website: websiteInput ? websiteInput.value : '',
+        };
+        return apiPost(freshPayload).then(function (freshRes) {
+          finishSubmit(freshRes, false);
+        });
+      }
+      finishSubmit(res, isEdit);
+    }).catch(function () {
+      errorEl.textContent = 'Something went wrong. Please try again.';
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = originalLabel;
+    });
+
+    function finishSubmit(res, wasEdit) {
       if (!res || !res.ok) {
         errorEl.textContent = (res && res.error) ? 'Something went wrong (' + res.error + '). Please try again.' : 'Something went wrong. Please try again.';
         confirmBtn.disabled = false;
@@ -593,7 +616,7 @@
       lastSubmitTimestamp = Date.now();
 
       var record;
-      if (isEdit && stored) {
+      if (wasEdit && stored) {
         record = {
           id: stored.id,
           name: name,
@@ -616,11 +639,7 @@
       refreshBannerAndButton();
       loadAttendees();
       renderConfirmationScreen(record);
-    }).catch(function () {
-      errorEl.textContent = 'Something went wrong. Please try again.';
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = originalLabel;
-    });
+    }
   }
 
   /* ===========================================================
@@ -698,7 +717,7 @@
     if (guestCount === 1) {
       message = "🎉 You're all set, " + escapeHtml(firstName) + '!';
     } else {
-      message = "🎉 You're all set! " + escapeHtml(firstName) + ' + ' + (guestCount - 1) + ' guests';
+      message = "🎉 You're all set! " + escapeHtml(firstName) + ' + ' + (guestCount - 1) + (guestCount === 2 ? ' guest' : ' guests');
     }
 
     var photosUploaded = record.photosUploaded || 0;
