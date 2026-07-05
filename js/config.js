@@ -1,7 +1,7 @@
 // Shared configuration for Roshan's 70th birthday site.
 // APPS_SCRIPT_URL empty string = demo mode (no backend calls, simulated data).
 const CONFIG = {
-  APPS_SCRIPT_URL: "",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzmTOSIWEwnoWjNXhHSPW1nH59hg9BSPMHslv6joWtvJyuwvTJdL_Rs_63ZjoqFc2dg/exec",
 
   EVENT_TITLE: "Roshan's 70th Birthday",
   // Sydney is UTC+10 in July/August (no DST then), so fixed offsets are safe.

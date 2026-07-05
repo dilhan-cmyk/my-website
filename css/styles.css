@@ -159,6 +159,39 @@ body.has-banner .scroll-container {
   background-image: var(--hero-photo-url);
 }
 
+/* On landscape screens a portrait cover crop cuts off heads and floor.
+   Show the full photo (contain) over a blurred, darkened copy that
+   fills the empty sides. The element's own background paints beneath
+   negative z-index pseudos, so both layers go on pseudo-elements:
+   ::before blurred fill, ::after sharp full photo. */
+@media (orientation: landscape) and (min-width: 700px) {
+  .hero-media--photo {
+    background-image: none;
+    overflow: hidden;
+  }
+
+  .hero-media--photo::before,
+  .hero-media--photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--hero-photo-url);
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .hero-media--photo::before {
+    background-size: cover;
+    filter: blur(24px) brightness(0.45);
+    transform: scale(1.1); /* hide blur edge bleed */
+  }
+
+  .hero-media--photo::after {
+    background-size: contain;
+    background-position: left 6vw center;
+  }
+}
+
 .hero-overlay {
   position: relative;
   z-index: 1;
@@ -166,8 +199,14 @@ body.has-banner .scroll-container {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: linear-gradient(to bottom, rgba(10, 12, 18, 0) 55%, rgba(10, 12, 18, 0.65) 72%, rgba(10, 12, 18, 0.92) 100%);
+  background: linear-gradient(to bottom, rgba(10, 12, 18, 0.35) 0%, rgba(10, 12, 18, 0) 28%, rgba(10, 12, 18, 0) 42%, rgba(10, 12, 18, 0.55) 56%, rgba(10, 12, 18, 0.85) 72%, rgba(10, 12, 18, 0.97) 100%);
   padding: 2rem 1.5rem 3rem;
+}
+
+.hero-content .eyebrow,
+.hero-content .hero-heading,
+.hero-content .countdown {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
 .hero-content {
@@ -175,6 +214,23 @@ body.has-banner .scroll-container {
   margin: 0 auto;
   width: 100%;
   text-align: center;
+}
+
+/* Landscape: the full photo is docked left, so keep text clear of it
+   by centering the content in the remaining right-hand space.
+   (Must come after the base .hero-content rule to win the cascade.) */
+@media (orientation: landscape) and (min-width: 700px) {
+  .hero-overlay {
+    justify-content: center;
+    align-items: flex-end;
+    background: linear-gradient(to right, rgba(10, 12, 18, 0) 40%, rgba(10, 12, 18, 0.55) 62%, rgba(10, 12, 18, 0.75) 100%);
+    padding-right: 4vw;
+  }
+
+  .hero-content {
+    width: 55%;
+    margin: 0;
+  }
 }
 
 .eyebrow {
@@ -262,6 +318,8 @@ body.has-banner .scroll-container {
   background: var(--color-navy);
   padding: 6rem 1.5rem 4rem;
   align-items: center;
+  /* Polaroids are decorative and must never bleed into adjacent folds */
+  overflow: hidden;
 }
 
 .details-collage {
@@ -290,10 +348,13 @@ body.has-banner .scroll-container {
   border: 1px solid #d3cbb8;
 }
 
-.polaroid--1 { top: -270px; left: 2%; transform: rotate(-8deg); }
-.polaroid--2 { top: -230px; right: 4%; transform: rotate(6deg); }
-.polaroid--3 { top: 10px; left: 8%; transform: rotate(5deg); }
-.polaroid--4 { top: 40px; right: 6%; transform: rotate(-5deg); }
+/* Percent offsets are relative to the whole section (see the min-width
+   rule below), so the polaroids scatter around the centered text and
+   stay inside the fold at every viewport size. */
+.polaroid--1 { top: 8%; left: 3%; transform: rotate(-8deg); }
+.polaroid--2 { top: 16%; right: 5%; transform: rotate(6deg); }
+.polaroid--3 { bottom: 10%; left: 8%; transform: rotate(5deg); }
+.polaroid--4 { bottom: 18%; right: 6%; transform: rotate(-5deg); }
 
 .details-content {
   position: relative;
@@ -699,6 +760,10 @@ input:focus-visible {
 
 @media (min-width: 601px) {
   .details-collage {
-    height: 260px;
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    height: auto;
+    margin: 0;
   }
 }

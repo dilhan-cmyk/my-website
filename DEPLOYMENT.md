@@ -56,7 +56,7 @@ Important: do not reuse a real password you use elsewhere. This token will effec
 5. You may be asked to authorize again. Follow the same steps as in Step 3 (Advanced > Go to project > Allow).
 6. Once deployed, you will see a **Web app URL**. It will look something like:
    `https://script.google.com/macros/s/AKfycb.../exec`
-7. Copy this entire URL. This is the address the website will use to talk to your Google Sheet. Keep the tab open or paste the URL somewhere temporary, you'll need it in the next step.
+7. Copy this entire URL. This is the address the website will use to talk to your Google Sheet. Keep the tab open or paste the URL somewhere temporary, you'll need it in the next step. https://script.google.com/macros/s/AKfycbzmTOSIWEwnoWjNXhHSPW1nH59hg9BSPMHslv6joWtvJyuwvTJdL_Rs_63ZjoqFc2dg/exec
 
 ## Step 6: Paste the URL into the website config
 
