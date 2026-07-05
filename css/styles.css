@@ -308,6 +308,16 @@ body.has-banner .scroll-container {
   .scroll-indicator-mouse::before {
     animation: none;
   }
+
+  .scroll-container {
+    scroll-behavior: auto;
+  }
+
+  .btn,
+  .banner-link,
+  .polaroid {
+    transition: none;
+  }
 }
 
 /* ===========================================================
@@ -322,7 +332,8 @@ body.has-banner .scroll-container {
   overflow: hidden;
 }
 
-.details-collage {
+.details-collage,
+.fold-collage {
   position: relative;
   max-width: 900px;
   margin: 0 auto;
@@ -366,6 +377,19 @@ body.has-banner .scroll-container {
 .polaroid--2 { top: 16%; right: 5%; transform: rotate(6deg); }
 .polaroid--3 { bottom: 10%; left: 8%; transform: rotate(5deg); }
 .polaroid--4 { bottom: 18%; right: 6%; transform: rotate(-5deg); }
+.polaroid--5 { top: 44%; left: 1%; transform: rotate(3deg); }
+.polaroid--6 { top: 40%; right: 1%; transform: rotate(-4deg); }
+
+/* Attending fold */
+.polaroid--7 { top: 10%; left: 4%; transform: rotate(-6deg); }
+.polaroid--8 { top: 14%; right: 5%; transform: rotate(7deg); }
+.polaroid--9 { top: 46%; left: 2%; transform: rotate(4deg); }
+.polaroid--10 { bottom: 12%; right: 4%; transform: rotate(-5deg); }
+.polaroid--11 { bottom: 9%; left: 9%; transform: rotate(6deg); }
+
+/* Map fold: keep clear of the full-width iframe, top corners only */
+.polaroid--12 { top: 5%; left: 3%; transform: rotate(-7deg); }
+.polaroid--13 { top: 7%; right: 3%; transform: rotate(5deg); }
 
 .details-content {
   position: relative;
@@ -469,7 +493,9 @@ body.has-banner .scroll-container {
   text-decoration: underline;
   cursor: pointer;
   font-size: 0.9rem;
-  padding: 0.4rem;
+  /* comfortable touch target */
+  padding: 0.75rem 0.75rem;
+  min-height: 44px;
 }
 
 /* ===========================================================
@@ -480,9 +506,12 @@ body.has-banner .scroll-container {
   background: var(--color-bg);
   padding: 5rem 1.5rem;
   align-items: center;
+  overflow: hidden; /* keep scattered polaroids inside the fold */
 }
 
 .attending-content {
+  position: relative;
+  z-index: 1;
   max-width: 640px;
   margin: 0 auto;
   text-align: center;
@@ -513,6 +542,53 @@ body.has-banner .scroll-container {
   color: var(--color-cream-dim);
 }
 
+.attendee-list li.attendee-item--expandable {
+  padding: 0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.attendee-toggle {
+  background: none;
+  border: none;
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.5rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+}
+
+.attendee-toggle-chevron {
+  display: inline-block;
+  transition: transform var(--transition-fast);
+  font-size: 0.75em;
+}
+
+.attendee-toggle[aria-expanded="true"] .attendee-toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.attendee-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0 1.1rem 0.5rem 1.6rem;
+  color: var(--color-cream-dim);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.attendee-sublist li {
+  background: none;
+  border: none;
+  padding: 0.1rem 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+
 /* ===========================================================
    Map section
    =========================================================== */
@@ -522,14 +598,19 @@ body.has-banner .scroll-container {
   padding: 4rem 1.5rem;
   align-items: center;
   min-height: auto;
+  overflow: hidden; /* keep scattered polaroids inside the fold */
 }
 
 .section-heading--map {
+  position: relative;
+  z-index: 1;
   text-align: center;
   margin-bottom: 1.5rem;
 }
 
 .map-embed-wrap {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
@@ -580,15 +661,20 @@ body.has-banner .scroll-container {
 
 .modal-close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.9rem;
+  top: 0.35rem;
+  right: 0.5rem;
   background: none;
   border: none;
   color: var(--color-cream-dim);
   font-size: 1.75rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0.25rem;
+  /* 44x44px minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-close:hover {
@@ -632,6 +718,64 @@ input:focus-visible {
 
 .form-field input:focus {
   border-color: var(--color-gold);
+}
+
+.form-field-helper {
+  font-size: 0.8rem;
+  color: var(--color-cream-dim);
+  margin: 0;
+}
+
+.guest-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.guest-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guest-row input {
+  flex: 1;
+  background: var(--color-bg);
+  border: 1px solid rgba(245, 239, 227, 0.25);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  color: var(--color-cream);
+  font-size: 1rem;
+}
+
+.guest-row input:focus {
+  border-color: var(--color-gold);
+}
+
+.guest-row-remove {
+  background: none;
+  border: 1px solid rgba(245, 239, 227, 0.25);
+  border-radius: 8px;
+  color: var(--color-cream-dim);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guest-row-remove:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.guest-add-row {
+  margin-top: 0.6rem;
 }
 
 /* Honeypot: visually hidden but not display:none, so simple bots that skip
@@ -742,7 +886,8 @@ input:focus-visible {
    =========================================================== */
 
 @media (max-width: 600px) {
-  .details-collage {
+  .details-collage,
+  .fold-collage {
     position: static;
     height: auto;
     display: flex;
@@ -754,9 +899,9 @@ input:focus-visible {
 
   .polaroid {
     position: static;
-    width: 64px;
-    height: 78px;
-    padding: 5px 5px 14px;
+    width: 100px;
+    height: 120px;
+    padding: 7px 7px 20px;
     transform: none !important;
   }
 
@@ -770,7 +915,8 @@ input:focus-visible {
 }
 
 @media (min-width: 601px) {
-  .details-collage {
+  .details-collage,
+  .fold-collage {
     position: absolute;
     inset: 0;
     max-width: none;

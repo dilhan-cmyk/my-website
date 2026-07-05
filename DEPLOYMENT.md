@@ -101,6 +101,23 @@ Once `js/config.js` has your real URL and the site is live:
 
 If all of that worked, real guests can now RSVP and you can manage the list from the admin page.
 
+## Updating the backend code
+
+Whenever you get an updated `apps-script/Code.gs` (for example, a version that adds support for named guests), use these steps to update your live backend without breaking the site:
+
+1. Open your Google Sheet, click **Extensions**, then click **Apps Script**.
+2. In the `Code.gs` file, select all of the existing contents and delete them.
+3. Open the new `apps-script/Code.gs` from the website project, select all of its contents, and copy it.
+4. Paste the full contents into the empty `Code.gs` file in the Apps Script editor.
+5. Click the floppy disk save icon (or press Ctrl+S) to save.
+6. Run `setup()` once again: pick `setup` from the function dropdown at the top of the editor and click the **Run** button. This adds any new column headers, such as `guest_names`, to the existing RSVPs tab without touching your existing rows. You should not need to re-authorize if you already did so before.
+7. Click **Deploy**, then **Manage deployments**.
+8. Click the pencil (edit) icon next to your existing web app deployment.
+9. Under "Version", choose **New version** from the dropdown.
+10. Click **Deploy**.
+
+This keeps the same web app URL, so `js/config.js` does not need to change and the live site keeps working right away. Do not use **Deploy > New deployment** for this. That creates a brand new URL and would require updating `js/config.js` and re-publishing the site.
+
 ## Troubleshooting
 
 | Problem | Likely Cause | Fix |

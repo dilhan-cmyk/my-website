@@ -6,7 +6,7 @@
  * (Web app, Execute as: Me, Who has access: Anyone).
  *
  * Sheet "RSVPs" columns (row 1 header):
- *   id | name | email | guest_count | timestamp | photo_urls
+ *   id | name | email | guest_count | timestamp | photo_urls | guest_names
  *
  * See API-CONTRACT.md in the repo for the full request/response contract.
  * See DEPLOYMENT.md for setup instructions.
@@ -16,9 +16,10 @@
 
 var SHEET_NAME = 'RSVPs';
 var PHOTO_FOLDER_NAME = 'Roshan 70th - Guest Photos';
-var HEADERS = ['id', 'name', 'email', 'guest_count', 'timestamp', 'photo_urls'];
+var HEADERS = ['id', 'name', 'email', 'guest_count', 'timestamp', 'photo_urls', 'guest_names'];
 var MAX_PHOTOS = 5;
 var MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 MB
+var MAX_GUEST_NAME_LEN = 80;
 var LOCK_WAIT_MS = 10 * 1000; // 10 seconds
 
 // Column indexes (1-based, matching HEADERS order)
@@ -28,7 +29,8 @@ var COL = {
   EMAIL: 3,
   GUEST_COUNT: 4,
   TIMESTAMP: 5,
-  PHOTO_URLS: 6
+  PHOTO_URLS: 6,
+  GUEST_NAMES: 7
 };
 
 // ---- Setup (run once from the editor) --------------------------------
@@ -47,6 +49,15 @@ function setup() {
   }
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  } else {
+    // Upgrade path: an existing sheet may have fewer header columns than
+    // the current HEADERS (e.g. before guest_names was added). Write only
+    // the missing header cell(s) at the end; existing headers are untouched.
+    var existingCols = sheet.getLastColumn();
+    if (existingCols < HEADERS.length) {
+      var missing = HEADERS.slice(existingCols);
+      sheet.getRange(1, existingCols + 1, 1, missing.length).setValues([missing]);
+    }
   }
 
   var props = PropertiesService.getScriptProperties();
@@ -137,7 +148,8 @@ function handleRsvp_(body) {
       validation.email,
       validation.guestCount,
       timestamp,
-      ''
+      '',
+      validation.guestNames.join(',')
     ]);
     return jsonOut_({ ok: true, id: id });
   });
@@ -162,6 +174,7 @@ function handleEditRsvp_(body) {
     sheet.getRange(row, COL.NAME).setValue(validation.name);
     sheet.getRange(row, COL.EMAIL).setValue(validation.email);
     sheet.getRange(row, COL.GUEST_COUNT).setValue(validation.guestCount);
+    setGuestNamesCell_(sheet, row, validation.guestNames.join(','));
     return jsonOut_({ ok: true });
   });
 }
@@ -244,15 +257,19 @@ function handleDeleteRsvp_(body) {
 function handleAttendees_() {
   var sheet = getSheet_();
   var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
   var attendees = [];
   if (lastRow > 1) {
-    var values = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+    var values = sheet.getRange(2, 1, lastRow - 1, Math.min(lastCol, HEADERS.length)).getValues();
     for (var i = 0; i < values.length; i++) {
       var name = values[i][COL.NAME - 1];
       var guestCount = values[i][COL.GUEST_COUNT - 1];
+      var row = i + 2;
+      var guestNames = getGuestNames_(sheet, row);
       attendees.push({
         name: firstToken_(String(name)),
-        guestCount: Number(guestCount)
+        guestCount: Number(guestCount),
+        guests: guestNames.map(firstToken_)
       });
     }
     attendees.reverse(); // newest first
@@ -268,19 +285,22 @@ function handleAdmin_(e) {
 
   var sheet = getSheet_();
   var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
   var records = [];
   var totalGuests = 0;
 
   if (lastRow > 1) {
-    var values = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+    var values = sheet.getRange(2, 1, lastRow - 1, Math.min(lastCol, HEADERS.length)).getValues();
     for (var i = 0; i < values.length; i++) {
       var row = values[i];
+      var rowNum = i + 2;
       var guestCount = Number(row[COL.GUEST_COUNT - 1]) || 0;
       var photoUrlsRaw = row[COL.PHOTO_URLS - 1];
       var photoUrls = String(photoUrlsRaw || '')
         .split(',')
         .map(function (s) { return s.trim(); })
         .filter(function (s) { return s.length > 0; });
+      var guestNames = getGuestNames_(sheet, rowNum);
 
       records.push({
         id: row[COL.ID - 1],
@@ -288,7 +308,8 @@ function handleAdmin_(e) {
         email: row[COL.EMAIL - 1],
         guestCount: guestCount,
         timestamp: row[COL.TIMESTAMP - 1],
-        photoUrls: photoUrls
+        photoUrls: photoUrls,
+        guests: guestNames
       });
       totalGuests += guestCount;
     }
@@ -300,13 +321,17 @@ function handleAdmin_(e) {
 // ---- Validation ----------------------------------------------------------
 
 /**
- * Validates the shared rsvp/editRsvp fields (name, email, guestCount).
- * Returns { ok: true, name, email, guestCount } or { ok: false, error }.
+ * Validates the shared rsvp/editRsvp fields (name, email, guestCount, guests).
+ * Returns { ok: true, name, email, guestCount, guestNames } or { ok: false, error }.
+ *
+ * `guests` (optional) is an array of additional guest name strings. When
+ * present, guestCount is recomputed as 1 + guests.length (the client-sent
+ * guestCount is ignored in that case) for backwards compatibility with old
+ * clients that only send guestCount and no guests array.
  */
 function validateRsvpFields_(body) {
   var name = body.name ? String(body.name).trim() : '';
   var email = body.email ? String(body.email).trim() : '';
-  var guestCount = parseInt(body.guestCount, 10);
 
   if (!name) {
     return { ok: false, error: 'bad_request' };
@@ -314,16 +339,50 @@ function validateRsvpFields_(body) {
   if (!isValidEmail_(email)) {
     return { ok: false, error: 'bad_request' };
   }
-  if (isNaN(guestCount) || guestCount < 1) {
+
+  var hasGuests = typeof body.guests !== 'undefined';
+  if (hasGuests && !Array.isArray(body.guests)) {
     return { ok: false, error: 'bad_request' };
+  }
+
+  var guestNames = hasGuests ? sanitizeGuestNames_(body.guests) : [];
+  var guestCount;
+  if (hasGuests) {
+    guestCount = 1 + guestNames.length;
+  } else {
+    guestCount = parseInt(body.guestCount, 10);
+    if (isNaN(guestCount) || guestCount < 1) {
+      return { ok: false, error: 'bad_request' };
+    }
   }
 
   return {
     ok: true,
     name: sanitizeCell_(name),
     email: sanitizeCell_(email),
-    guestCount: guestCount
+    guestCount: guestCount,
+    guestNames: guestNames
   };
+}
+
+/**
+ * Sanitizes a raw `guests` array into clean guest name strings: coerces to
+ * String, trims, strips commas (the sheet cell is comma-separated), caps at
+ * MAX_GUEST_NAME_LEN chars, drops empties, and applies the same
+ * formula-injection guard used for other cell values.
+ */
+function sanitizeGuestNames_(guests) {
+  var result = [];
+  for (var i = 0; i < guests.length; i++) {
+    var cleaned = String(guests[i])
+      .trim()
+      .replace(/,/g, '')
+      .slice(0, MAX_GUEST_NAME_LEN);
+    if (cleaned) {
+      result.push(sanitizeCell_(cleaned));
+    }
+  }
+  return result;
 }
 
 function isValidEmail_(email) {
@@ -400,6 +459,33 @@ function getPhotoUrls_(sheet, row) {
     .split(',')
     .map(function (s) { return s.trim(); })
     .filter(function (s) { return s.length > 0; });
+}
+
+/**
+ * Returns the stored guest_names for a given row as an array of full names.
+ * Tolerates sheets that predate the guest_names column (returns []).
+ */
+function getGuestNames_(sheet, row) {
+  if (sheet.getLastColumn() < COL.GUEST_NAMES) {
+    return [];
+  }
+  var raw = sheet.getRange(row, COL.GUEST_NAMES).getValue();
+  return String(raw || '')
+    .split(',')
+    .map(function (s) { return s.trim(); })
+    .filter(function (s) { return s.length > 0; });
+}
+
+/**
+ * Writes the guest_names cell for a given row. If the sheet predates the
+ * guest_names column, does nothing (old deployments must re-run setup()
+ * to add the column before this can be stored).
+ */
+function setGuestNamesCell_(sheet, row, value) {
+  if (sheet.getLastColumn() < COL.GUEST_NAMES) {
+    return;
+  }
+  sheet.getRange(row, COL.GUEST_NAMES).setValue(value);
 }
 
 /** First whitespace-separated token of a name string. */

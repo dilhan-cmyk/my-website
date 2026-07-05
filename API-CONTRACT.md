@@ -20,18 +20,26 @@ The frontend (GitHub Pages) talks to a Google Apps Script web app deployed as
 ### POST { action: "rsvp" }
 Request body (JSON):
 ```json
-{ "action": "rsvp", "name": "Dilhan", "email": "d@x.com", "guestCount": 3, "website": "" }
+{ "action": "rsvp", "name": "Dilhan Perera", "email": "d@x.com",
+  "guests": ["Will Smith", "Sam"], "guestCount": 3, "website": "" }
 ```
+- `guests` is the list of ADDITIONAL guest names (not including the RSVP-er).
+  May be empty. Server trims entries, drops empty ones, caps each at 80 chars.
+- `guestCount` is still sent by the client as `1 + guests.length`. The server
+  recomputes it from `guests` when the `guests` field is present (backwards
+  compatibility: an old client sending only guestCount still works, guests
+  is stored empty).
 - `website` is a honeypot field. If non-empty, silently return `{ ok: true, id: "fake" }` and store nothing.
-- `name` and `email` required, `guestCount` integer >= 1. Trim strings. Basic email shape check.
+- `name` and `email` required. Trim strings. Basic email shape check.
 - Creates a row with a new UUID id and server timestamp.
 Response: `{ "ok": true, "id": "<uuid>" }`
 
 ### POST { action: "editRsvp" }
 ```json
-{ "action": "editRsvp", "id": "<uuid>", "name": "...", "email": "...", "guestCount": 2 }
+{ "action": "editRsvp", "id": "<uuid>", "name": "...", "email": "...",
+  "guests": ["..."], "guestCount": 2 }
 ```
-- Finds the row by id, updates name/email/guestCount. 404-style error if id not found:
+- Finds the row by id, updates name/email/guests/guest_count. 404-style error if id not found:
   `{ "ok": false, "error": "not_found" }`.
 Response: `{ "ok": true }`
 
@@ -39,10 +47,14 @@ Response: `{ "ok": true }`
 Public list for the "Attending" section.
 Response:
 ```json
-{ "ok": true, "attendees": [ { "name": "Dilhan", "guestCount": 3 } ] }
+{ "ok": true, "attendees": [ { "name": "Dilhan", "guestCount": 3, "guests": ["Will", "Sam"] } ] }
 ```
 - `name` is the FIRST NAME ONLY (server-side: first whitespace-separated token of stored name).
+- `guests` contains the FIRST NAME ONLY of each additional guest. Empty array when none.
 - Never include emails or ids. Sorted newest first.
+- Frontend renders "Dilhan + 2"; clicking expands to list the guest first names.
+  A client talking to an old backend (no `guests` in response) must treat guests
+  as [] and render a non-expandable "+ N".
 
 ### POST { action: "uploadPhoto" }
 ```json
@@ -73,7 +85,12 @@ Response: `{ "ok": true }`
 
 ## Sheet schema (sheet name: "RSVPs", header row 1)
 
-| id | name | email | guest_count | timestamp | photo_urls |
+| id | name | email | guest_count | timestamp | photo_urls | guest_names |
+
+- `guest_names` stores the additional guest full names, comma-separated
+  (names have commas stripped on write). Column added at the END so
+  existing rows keep working; setup() adds the header when missing and
+  handlers must tolerate rows/sheets where the column is absent.
 
 ## Secrets
 
@@ -84,7 +101,8 @@ Response: `{ "ok": true }`
 ## Client-side RSVP state (localStorage)
 
 Key: `roshan70_rsvp`
-Value: JSON `{ "id": "<uuid>", "name": "Dilhan", "email": "d@x.com", "guestCount": 3, "photosUploaded": 0 }`
+Value: JSON `{ "id": "<uuid>", "name": "Dilhan", "email": "d@x.com", "guests": ["Will", "Sam"], "guestCount": 3, "photosUploaded": 0 }`
+- Older stored records may lack `guests`; treat as [].
 - Written after a successful rsvp/editRsvp. Drives the sticky banner,
   Edit RSVP button state, and the 5-photo client-side counter.
 

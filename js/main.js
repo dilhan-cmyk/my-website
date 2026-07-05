@@ -20,8 +20,8 @@
 
   // In-memory demo store, seeded fresh each page load.
   var demoAttendees = [
-    { name: 'Tamara', guestCount: 2 },
-    { name: 'Peter', guestCount: 1 },
+    { name: 'Tamara', guestCount: 2, guests: ['Peter'] },
+    { name: 'Peter', guestCount: 1, guests: [] },
   ];
 
   function isDemoMode() {
@@ -45,7 +45,11 @@
           var stored = getStoredRsvp();
           if (stored && stored.name) {
             var firstName = stored.name.trim().split(/\s+/)[0];
-            list = [{ name: firstName, guestCount: stored.guestCount }].concat(list);
+            var storedGuests = Array.isArray(stored.guests) ? stored.guests : [];
+            var guestFirstNames = storedGuests.map(function (g) {
+              return String(g).trim().split(/\s+/)[0];
+            }).filter(function (n) { return n; });
+            list = [{ name: firstName, guestCount: stored.guestCount, guests: guestFirstNames }].concat(list);
           }
           return { ok: true, attendees: list };
         }, 300);
@@ -296,14 +300,63 @@
         return;
       }
       listEl.innerHTML = '';
-      res.attendees.forEach(function (a) {
-        var li = document.createElement('li');
-        li.textContent = a.name + ' (' + a.guestCount + ')';
-        listEl.appendChild(li);
+      res.attendees.forEach(function (a, index) {
+        listEl.appendChild(buildAttendeeItem(a, index));
       });
     }).catch(function () {
       listEl.innerHTML = '<li class="attendee-empty">Guest list will appear here soon.</li>';
     });
+  }
+
+  function buildAttendeeItem(attendee, index) {
+    var li = document.createElement('li');
+    var extraGuests = Array.isArray(attendee.guests) ? attendee.guests.filter(function (n) { return n; }) : [];
+    var guestCount = attendee.guestCount || 1;
+
+    if (guestCount <= 1) {
+      // No extra guests: plain list item with just the first name.
+      li.textContent = attendee.name;
+      return li;
+    }
+
+    if (extraGuests.length === 0) {
+      // Backwards compatibility: old backend sent guestCount > 1 with no
+      // guests array. Render as plain, non-expandable text.
+      li.textContent = attendee.name + ' + ' + (guestCount - 1);
+      return li;
+    }
+
+    li.className = 'attendee-item--expandable';
+    var toggleId = 'attendee-toggle-' + index;
+    var sublistId = 'attendee-sublist-' + index;
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'attendee-toggle';
+    button.id = toggleId;
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', sublistId);
+    button.innerHTML =
+      '<span class="attendee-toggle-label">' + escapeHtml(attendee.name) + ' + ' + (guestCount - 1) + '</span>' +
+      '<span class="attendee-toggle-chevron" aria-hidden="true">&#9660;</span>';
+
+    var sublist = document.createElement('ul');
+    sublist.className = 'attendee-sublist';
+    sublist.id = sublistId;
+    sublist.hidden = true;
+    sublist.innerHTML = extraGuests.map(function (guestName) {
+      return '<li>' + escapeHtml(guestName) + '</li>';
+    }).join('');
+
+    button.addEventListener('click', function () {
+      var expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      sublist.hidden = expanded;
+    });
+
+    li.appendChild(button);
+    li.appendChild(sublist);
+    return li;
   }
 
   /* ===========================================================
@@ -377,6 +430,28 @@
     return div.innerHTML;
   }
 
+  function addGuestRow(guestRowsEl, value, focusIt) {
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML =
+      '<div class="guest-row">' +
+      '  <input type="text" class="guest-name-input" placeholder="Guest name" aria-label="Guest name" maxlength="80">' +
+      '  <button type="button" class="guest-row-remove" aria-label="Remove guest">&times;</button>' +
+      '</div>';
+    var row = wrapper.firstElementChild;
+    var input = row.querySelector('.guest-name-input');
+    // Set as a property, never as an inline attribute: escapeHtml does not
+    // escape quotes, so names containing " would break out of the attribute.
+    input.value = value || '';
+    guestRowsEl.appendChild(row);
+    row.querySelector('.guest-row-remove').addEventListener('click', function () {
+      row.remove();
+    });
+    if (focusIt) {
+      input.focus();
+    }
+    return row;
+  }
+
   function renderRsvpForm(mode) {
     var stored = getStoredRsvp();
     var isEdit = mode === 'edit';
@@ -394,8 +469,12 @@
       '    <input type="email" id="rsvp-email" name="email" required autocomplete="email">' +
       '  </div>' +
       '  <div class="form-field">' +
-      '    <label for="rsvp-guests">How many people are you RSVP-ing for, including yourself?</label>' +
-      '    <input type="number" id="rsvp-guests" name="guestCount" min="1" step="1" value="1" required>' +
+      '    <span id="rsvp-guests-label">Guests</span>' +
+      '    <p class="form-field-helper" id="rsvp-guests-helper">Bringing anyone? Add each guest below.</p>' +
+      '    <div class="guest-rows" id="guest-rows" aria-labelledby="rsvp-guests-label"></div>' +
+      '    <div class="guest-add-row">' +
+      '      <button type="button" id="rsvp-add-guest" class="btn btn-secondary">Add guest</button>' +
+      '    </div>' +
       '  </div>' +
       '  <div class="form-field hp-field" aria-hidden="true">' +
       '    <label for="rsvp-website">Website</label>' +
@@ -408,11 +487,20 @@
       '  </div>' +
       '</form>';
 
+    var guestRowsEl = modalBody.querySelector('#guest-rows');
+
     if (isEdit && stored) {
       modalBody.querySelector('#rsvp-name').value = stored.name || '';
       modalBody.querySelector('#rsvp-email').value = stored.email || '';
-      modalBody.querySelector('#rsvp-guests').value = stored.guestCount || 1;
+      var storedGuests = Array.isArray(stored.guests) ? stored.guests : [];
+      storedGuests.forEach(function (guestName) {
+        addGuestRow(guestRowsEl, guestName, false);
+      });
     }
+
+    modalBody.querySelector('#rsvp-add-guest').addEventListener('click', function () {
+      addGuestRow(guestRowsEl, '', true);
+    });
 
     modalBody.querySelector('#rsvp-cancel').addEventListener('click', function () {
       closeModal();
@@ -429,28 +517,37 @@
     var confirmBtn = document.getElementById('rsvp-confirm');
     var nameInput = document.getElementById('rsvp-name');
     var emailInput = document.getElementById('rsvp-email');
-    var guestsInput = document.getElementById('rsvp-guests');
+    var guestRowsEl = document.getElementById('guest-rows');
     var websiteInput = document.getElementById('rsvp-website');
 
     errorEl.textContent = '';
+    [nameInput, emailInput].forEach(function (input) {
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    });
+
+    function failField(input, message) {
+      errorEl.textContent = message;
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', 'rsvp-form-error');
+      input.focus();
+    }
 
     var name = nameInput.value.trim();
     var email = emailInput.value.trim();
-    var guestCount = parseInt(guestsInput.value, 10);
+
+    var guestNameInputs = Array.prototype.slice.call(guestRowsEl.querySelectorAll('.guest-name-input'));
+    var guests = guestNameInputs
+      .map(function (input) { return input.value.trim(); })
+      .filter(function (value) { return value.length > 0; });
+    var guestCount = 1 + guests.length;
 
     if (!name) {
-      errorEl.textContent = 'Please enter your name.';
-      nameInput.focus();
+      failField(nameInput, 'Please enter your name.');
       return;
     }
     if (!emailInput.checkValidity() || !email) {
-      errorEl.textContent = 'Please enter a valid email address.';
-      emailInput.focus();
-      return;
-    }
-    if (!Number.isInteger(guestCount) || guestCount < 1) {
-      errorEl.textContent = 'Guest count must be a whole number of at least 1.';
-      guestsInput.focus();
+      failField(emailInput, 'Please enter a valid email address.');
       return;
     }
 
@@ -471,6 +568,7 @@
         id: stored.id,
         name: name,
         email: email,
+        guests: guests,
         guestCount: guestCount,
       };
     } else {
@@ -478,6 +576,7 @@
         action: 'rsvp',
         name: name,
         email: email,
+        guests: guests,
         guestCount: guestCount,
         website: websiteInput.value,
       };
@@ -499,6 +598,7 @@
           id: stored.id,
           name: name,
           email: email,
+          guests: guests,
           guestCount: guestCount,
           photosUploaded: stored.photosUploaded || 0,
         };
@@ -507,6 +607,7 @@
           id: res.id,
           name: name,
           email: email,
+          guests: guests,
           guestCount: guestCount,
           photosUploaded: 0,
         };
@@ -580,6 +681,16 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
+  // Focus lands on the title so keyboard and screen reader users are not
+  // stranded when the form they were on is replaced.
+  function focusConfirmationTitle() {
+    var title = document.getElementById('rsvp-modal-title');
+    if (title) {
+      title.setAttribute('tabindex', '-1');
+      title.focus();
+    }
+  }
+
   function renderConfirmationScreen(record) {
     var firstName = (record.name || '').trim().split(/\s+/)[0] || 'there';
     var guestCount = record.guestCount || 1;
@@ -645,6 +756,8 @@
         e.target.value = '';
       });
     }
+
+    focusConfirmationTitle();
   }
 
   function handlePhotoSelection(fileList, record) {

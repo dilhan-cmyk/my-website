@@ -298,7 +298,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <main class="container">
     <!-- Login Form -->
     <div class="login-form" id="loginForm">
       <div class="login-card">
@@ -308,12 +308,13 @@
             type="password"
             id="passwordInput"
             placeholder="Password"
+            aria-label="Admin password"
             required
             autocomplete="current-password"
           >
           <button type="submit" id="signInBtn">Sign in</button>
         </form>
-        <div id="loginMessage"></div>
+        <div id="loginMessage" aria-live="polite"></div>
       </div>
     </div>
 
@@ -349,12 +350,12 @@
         <table id="rsvpTable">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Guests</th>
-              <th>Submitted</th>
-              <th>Photos</th>
-              <th>Action</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Guests</th>
+              <th scope="col">Submitted</th>
+              <th scope="col">Photos</th>
+              <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody id="rsvpTableBody">
@@ -366,7 +367,7 @@
         No RSVPs yet.
       </div>
     </div>
-  </div>
+  </main>
 
   <script src="js/config.js"></script>
   <script>
@@ -392,7 +393,8 @@
         email: "tamara@example.com",
         guestCount: 2,
         timestamp: "2026-07-01T09:30:00.000Z",
-        photoUrls: []
+        photoUrls: [],
+        guests: ["Peter Wong"]
       },
       {
         id: "2",
@@ -400,7 +402,8 @@
         email: "peter@example.com",
         guestCount: 1,
         timestamp: "2026-07-03T22:10:00.000Z",
-        photoUrls: ["https://example.com/photo"]
+        photoUrls: ["https://example.com/photo"],
+        guests: []
       }
     ];
 
@@ -538,7 +541,12 @@
         }
 
         const remaining = Math.ceil((lockoutExpiry - now) / 60000);
-        messageDiv.textContent = `Too many attempts. Try again in ${remaining} minute${remaining !== 1 ? "s" : ""}.`;
+        const text = `Too many attempts. Try again in ${remaining} minute${remaining !== 1 ? "s" : ""}.`;
+        // Only touch the DOM when the text changes, so the aria-live
+        // region announces once per minute rather than every second
+        if (messageDiv.textContent !== text) {
+          messageDiv.textContent = text;
+        }
       }, 1000);
     }
 
@@ -658,7 +666,7 @@
         <tr>
           <td>${escapeHtml(record.name)}</td>
           <td>${escapeHtml(record.email)}</td>
-          <td>${record.guestCount}</td>
+          <td>${renderGuests(record.guests, record.guestCount)}</td>
           <td>${formatTimestamp(record.timestamp)}</td>
           <td>${renderPhotos(record.photoUrls)}</td>
           <td>
@@ -672,13 +680,24 @@
         .join("");
     }
 
+    function renderGuests(guests, guestCount) {
+      // If guests array is missing or empty, show just the count
+      if (!guests || guests.length === 0) {
+        return guestCount;
+      }
+
+      // Show count on first line, then guest names on second line (dimmed)
+      const guestNames = guests.map(g => escapeHtml(g)).join(", ");
+      return `<div>${guestCount}</div><div style="font-size: 12px; color: #999;">+ ${guestNames}</div>`;
+    }
+
     function renderPhotos(photoUrls) {
       if (!photoUrls || photoUrls.length === 0) return "-";
 
       return photoUrls
         .map(
           (url, idx) =>
-            `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Photo ${idx + 1}</a>`
+            `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="Photo ${idx + 1} (opens in new tab)">Photo ${idx + 1}</a>`
         )
         .join(" ");
     }

@@ -11,7 +11,7 @@
 
   <!-- Sticky confirmation banner, hidden until an RSVP exists in localStorage -->
   <div id="sticky-banner" class="sticky-banner" hidden>
-    <span>&#9989; Your RSVP is confirmed. See you 2 August!</span>
+    <span><span aria-hidden="true">&#9989;</span> Your RSVP is confirmed. See you 2 August!</span>
     <button type="button" id="banner-view-details" class="banner-link">View details</button>
   </div>
 
@@ -25,7 +25,7 @@
         <div class="hero-content">
           <p class="eyebrow">You're invited</p>
           <h1 class="hero-heading">Roshan's 70th Birthday</h1>
-          <div id="hero-countdown" class="countdown countdown--hero" aria-live="polite">
+          <div id="hero-countdown" class="countdown countdown--hero">
             <span class="countdown-loading">Loading countdown...</span>
           </div>
         </div>
@@ -42,6 +42,8 @@
         <div class="polaroid polaroid--2"><div class="polaroid-frame"><img src="assets/collage2.jpg" alt=""></div></div>
         <div class="polaroid polaroid--3"><div class="polaroid-frame"><img src="assets/collage3.jpg" alt=""></div></div>
         <div class="polaroid polaroid--4"><div class="polaroid-frame"><img src="assets/collage4.jpg" alt=""></div></div>
+        <div class="polaroid polaroid--5"><div class="polaroid-frame"><img src="assets/collage5.jpg" alt=""></div></div>
+        <div class="polaroid polaroid--6"><div class="polaroid-frame"><img src="assets/collage6.jpg" alt=""></div></div>
       </div>
 
       <div class="details-content">
@@ -52,7 +54,7 @@
           <li><span class="details-icon" aria-hidden="true">&#9989;</span> RSVP by 19 July 2026 (to Tamara)</li>
         </ul>
 
-        <div id="rsvp-countdown" class="countdown countdown--rsvp" aria-live="polite">
+        <div id="rsvp-countdown" class="countdown countdown--rsvp">
           <p class="countdown-label">RSVP deadline</p>
           <span class="countdown-loading">Loading countdown...</span>
         </div>
@@ -65,6 +67,13 @@
 
     <!-- ATTENDING SECTION -->
     <section id="attending" class="fold attending" aria-label="Attending guests">
+      <div class="fold-collage" aria-hidden="true">
+        <div class="polaroid polaroid--7"><div class="polaroid-frame"><img src="assets/collage7.jpg" alt="" loading="lazy"></div></div>
+        <div class="polaroid polaroid--8"><div class="polaroid-frame"><img src="assets/collage8.jpg" alt="" loading="lazy"></div></div>
+        <div class="polaroid polaroid--9"><div class="polaroid-frame"><img src="assets/collage9.jpg" alt="" loading="lazy"></div></div>
+        <div class="polaroid polaroid--10"><div class="polaroid-frame"><img src="assets/collage10.jpg" alt="" loading="lazy"></div></div>
+        <div class="polaroid polaroid--11"><div class="polaroid-frame"><img src="assets/collage11.jpg" alt="" loading="lazy"></div></div>
+      </div>
       <div class="attending-content">
         <h2 class="section-heading">&#127881; Attending</h2>
         <ul id="attendee-list" class="attendee-list" aria-live="polite">
@@ -75,6 +84,10 @@
 
     <!-- MAP SECTION -->
     <section id="map" class="fold map-section" aria-label="Location map">
+      <div class="fold-collage" aria-hidden="true">
+        <div class="polaroid polaroid--12"><div class="polaroid-frame"><img src="assets/collage12.jpg" alt="" loading="lazy"></div></div>
+        <div class="polaroid polaroid--13"><div class="polaroid-frame"><img src="assets/collage13.jpg" alt="" loading="lazy"></div></div>
+      </div>
       <h2 class="section-heading section-heading--map">Find us</h2>
       <div class="map-embed-wrap">
         <iframe
