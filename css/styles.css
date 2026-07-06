@@ -373,24 +373,20 @@ body.has-banner .scroll-container {
 /* Percent offsets are relative to the whole section (see the min-width
    rule below), so the polaroids scatter around the centered text and
    stay inside the fold at every viewport size. */
-/* All placements hug the left/right edges in loose columns so the
-   centered text column stays clear and nothing floats mid-page. */
-.polaroid--1 { top: 4%; left: 1%; transform: rotate(-8deg); }
-.polaroid--2 { top: 7%; right: 1%; transform: rotate(6deg); }
-.polaroid--3 { bottom: 5%; left: 2%; transform: rotate(5deg); }
-.polaroid--4 { bottom: 8%; right: 2%; transform: rotate(-5deg); }
-.polaroid--5 { top: 36%; left: 0; transform: rotate(3deg); }
+/* All placements hug the page edges so the centered text stays clear.
+   Two photos per fold on opposite corners. */
+
+/* Details fold */
+.polaroid--1 { top: 6%; left: 2%; transform: rotate(-8deg); }
+.polaroid--2 { bottom: 8%; right: 2%; transform: rotate(6deg); }
 
 /* Attending fold */
-.polaroid--7 { top: 5%; left: 1%; transform: rotate(-6deg); }
-.polaroid--8 { top: 8%; right: 1%; transform: rotate(7deg); }
-.polaroid--9 { top: 38%; right: 0; transform: rotate(4deg); }
-.polaroid--10 { bottom: 6%; right: 2%; transform: rotate(-5deg); }
-.polaroid--11 { bottom: 7%; left: 2%; transform: rotate(6deg); }
+.polaroid--3 { top: 7%; right: 2%; transform: rotate(7deg); }
+.polaroid--4 { bottom: 8%; left: 2%; transform: rotate(-6deg); }
 
 /* Map fold: top corners, tucked behind the map card */
-.polaroid--12 { top: 4%; left: 1%; transform: rotate(-7deg); }
-.polaroid--13 { top: 6%; right: 1%; transform: rotate(5deg); }
+.polaroid--5 { top: 4%; left: 1%; transform: rotate(-7deg); }
+.polaroid--6 { top: 6%; right: 1%; transform: rotate(5deg); }
 
 .details-content {
   position: relative;
