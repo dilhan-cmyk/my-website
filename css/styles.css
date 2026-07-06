@@ -380,7 +380,6 @@ body.has-banner .scroll-container {
 .polaroid--3 { bottom: 5%; left: 2%; transform: rotate(5deg); }
 .polaroid--4 { bottom: 8%; right: 2%; transform: rotate(-5deg); }
 .polaroid--5 { top: 36%; left: 0; transform: rotate(3deg); }
-.polaroid--6 { top: 39%; right: 0; transform: rotate(-4deg); }
 
 /* Attending fold */
 .polaroid--7 { top: 5%; left: 1%; transform: rotate(-6deg); }
